@@ -1,0 +1,201 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  ── Neutrals (global, mode-driven) ──────────────────────────────────────
+  Light = clean off-white (Tailwind slate-50/white), dark = a rich deep
+  navy-slate (slate-950), not a generic near-black — the Stripe/Linear/
+  Vercel reference point. These used to vary per shop-type too; that's been
+  split out below so there's ONE consistent neutral system app-wide and the
+  per-tenant identity lives only in --color-primary/-light/-accent.
+*/
+:root {
+  --color-bg: #f8fafc; /* slate-50 */
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-border: #e2e8f0; /* slate-200 */
+  --color-fg: #0f172a; /* slate-900 */
+
+  /* Semantic status colors — fixed across shop type and light/dark, since
+     "success is green" shouldn't change meaning per tenant. */
+  --color-success: #10b981; /* emerald-500 */
+  --color-success-light: #34d399; /* emerald-400 */
+  --color-warning: #f59e0b; /* amber-500 */
+  --color-danger: #f43f5e; /* rose-500 */
+  --color-info: #6366f1; /* indigo-500 */
+}
+
+/*
+  Per-shop-type BRAND accent only (not the neutrals above). The active shop
+  sets data-shop-type on <html> (see app/layout.tsx); components reference
+  this via Tailwind's colors.primary = 'var(--color-primary)'
+  (tailwind.config.ts), never a hardcoded hex, so the same component tree
+  re-skins per tenant.
+*/
+:root,
+:root[data-shop-type="paint"] {
+  --color-primary: #2e7d32;
+  --color-primary-light: #43a047;
+  --color-primary-foreground: #ffffff;
+  --color-accent: #66bb6a;
+}
+
+:root[data-shop-type="wood"] {
+  --color-primary: #8d6e63;
+  --color-primary-light: #a1887f;
+  --color-primary-foreground: #ffffff;
+  --color-accent: #c08552;
+}
+
+:root[data-shop-type="agency"] {
+  --color-primary: #1565c0;
+  --color-primary-light: #1e88e5;
+  --color-primary-foreground: #ffffff;
+  --color-accent: #42a5f5;
+}
+
+/*
+  Elevation tokens — plain neutral shadows (not color-mix()-tinted) so they
+  render identically on every browser/WebView a shop's hardware might be
+  running, including older Android tablets this app needs to "just work"
+  on. Depth comes from layering a tight, low-opacity shadow with a soft,
+  wide one, not from color. --shadow-glow-primary is separate and IS
+  tinted — it's used sparingly, only for the one or two "hero" elements
+  per screen (Finalize Bill, a KPI icon) that should visibly glow.
+*/
+:root {
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 24px -12px rgba(15, 23, 42, 0.12);
+  --shadow-card-hover: 0 2px 4px rgba(15, 23, 42, 0.06), 0 20px 36px -14px rgba(15, 23, 42, 0.16);
+  --shadow-raised: 0 4px 10px -2px rgba(15, 23, 42, 0.08), 0 24px 48px -20px rgba(15, 23, 42, 0.18);
+  --shadow-glow-primary: 0 8px 30px -8px color-mix(in srgb, var(--color-primary) 55%, transparent);
+}
+
+/*
+  Dark-mode shadows: a black shadow at light-mode opacity is nearly
+  invisible against an already-dark background, so elevated surfaces read
+  flat without this override. Bumping opacity (not switching to a light
+  "glow") keeps the same visual language, just recalibrated for contrast.
+*/
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg: #020617; /* slate-950 */
+    --color-surface: #0f172a; /* slate-900 */
+    --color-surface-raised: #161e2e;
+    --color-border: #1e293b; /* slate-800 */
+    --color-fg: #f1f5f9; /* slate-100 */
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 24px -10px rgba(0, 0, 0, 0.6);
+    --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.35), 0 20px 36px -12px rgba(0, 0, 0, 0.7);
+    --shadow-raised: 0 4px 10px -2px rgba(0, 0, 0, 0.4), 0 24px 48px -16px rgba(0, 0, 0, 0.75);
+    --shadow-glow-primary: 0 8px 36px -6px color-mix(in srgb, var(--color-primary) 65%, transparent);
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-bg: #020617;
+  --color-surface: #0f172a;
+  --color-surface-raised: #161e2e;
+  --color-border: #1e293b;
+  --color-fg: #f1f5f9;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 24px -10px rgba(0, 0, 0, 0.6);
+  --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.35), 0 20px 36px -12px rgba(0, 0, 0, 0.7);
+  --shadow-raised: 0 4px 10px -2px rgba(0, 0, 0, 0.4), 0 24px 48px -16px rgba(0, 0, 0, 0.75);
+  --shadow-glow-primary: 0 8px 36px -6px color-mix(in srgb, var(--color-primary) 65%, transparent);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-bg);
+  /* color-mix() here (unlike the shadow tokens above) is fine to let
+     degrade ungracefully — on a browser that doesn't support it, this
+     property is simply ignored and background-color above still applies,
+     so the worst case is a flat background instead of a faint tint. */
+  background-image:
+    radial-gradient(ellipse 1200px 600px at 15% -10%, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent 60%),
+    radial-gradient(ellipse 900px 500px at 100% 0%, color-mix(in srgb, var(--color-info) 6%, transparent), transparent 60%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: var(--color-fg);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+
+/* Display type: headings and big stat numbers (see .font-display utility
+   in tailwind.config.ts). Clash Display (Fontshare, loaded in
+   app/layout.tsx's <head>) isn't on Google Fonts so it can't go through
+   next/font — this is a plain CSS @font-face-backed family name instead.
+   Tabular figures keep a column of invoice/price numbers aligned instead
+   of each digit claiming its own width. */
+.font-display {
+  font-family: "Clash Display", var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Glassmorphism — used sparingly: the sidebar, the top header, and modals.
+   NOT the dense product grid / tables, where a solid surface keeps text
+   legible against whatever's scrolling underneath. */
+.glass-panel {
+  background-color: color-mix(in srgb, var(--color-surface) 72%, transparent);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border-color: color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+/* Skeleton shimmer for loading.tsx route-level fallbacks. */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 25%,
+    var(--color-border) 50%,
+    var(--color-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 0.75rem;
+}
+
+/*
+  Print isolation for invoice printing (components/billing/InvoicePrint.tsx).
+  Per-layout page size (A4 vs 58mm/80mm thermal) can't live here — `@page`
+  needs a fixed size and InvoicePrint renders one of three different sizes
+  depending on what the cashier picked, so each render emits its own
+  matching `<style>@page{size:...}</style>` instead. This block only hides
+  everything else on the page so just the invoice prints.
+*/
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+}
